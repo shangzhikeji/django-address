@@ -161,6 +161,13 @@ def to_python(value):
 class Country(models.Model):
     name = models.CharField(max_length=40, unique=True, blank=True)
     code = models.CharField(max_length=2, blank=True)  # not unique as there are duplicates (IT)
+     #最高院
+    court = models.CharField(max_length=165, blank=True)
+    courtAddress = models.CharField(max_length=165, blank=True)
+    courtPhoneNumber =models.CharField(max_length=15, blank=True)
+    courtLatitude = models.FloatField(blank=True, null=True)
+    courtLongitude = models.FloatField(blank=True, null=True)
+    courtWebsite = models.CharField(max_length=165, blank=True)
 
     class Meta:
         verbose_name_plural = "Countries"
@@ -171,6 +178,47 @@ class Country(models.Model):
 
 
 ##
+# A CountryStat. 
+##
+
+
+class CountryStat(models.Model):
+     
+    year = models.IntegerField(default=0, editable=True)
+    lprDate = models.DateField(null=True,editable=True)
+    #全国城镇居民人均可支配收入
+    avgCityPerson = models.FloatField(default=0, editable=True)
+    #全国农村居民人均可支配收入
+    avgCountryPerson = models.FloatField(default=0, editable=True)
+    #lpr 
+    oneYearLpr = models.FloatField(default=0, editable=True)
+    twoYearLpr = models.FloatField(default=0, editable=True)
+    threeYearLpr = models.FloatField(default=0, editable=True)
+    fourYearLpr = models.FloatField(default=0, editable=True)
+    fiveYearLpr = models.FloatField(default=0, editable=True)
+    
+    #source
+    source = models.CharField(max_length=255, blank=True)
+
+    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="countryStat")
+   
+
+    class Meta:
+        #unique_together = ("country", "year")
+        ordering = ("country", "year")
+
+    def __str__(self):
+        txt = self.to_str()
+        country = "%s" % self.country
+        if country and txt:
+            txt += ", "
+        txt += country
+        return txt
+
+    def to_str(self):
+        return "%s" % (self.country and self.year)
+
+##
 # A state. Google refers to this as `administration_level_1`.
 ##
 
@@ -179,6 +227,14 @@ class State(models.Model):
     name = models.CharField(max_length=165, blank=True)
     code = models.CharField(max_length=8, blank=True)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="states")
+
+    #省法院
+    stateCourt = models.CharField(max_length=165, blank=True)
+    stateCourtAddress = models.CharField(max_length=165, blank=True)
+    courtPhoneNumber =models.CharField(max_length=15, blank=True)
+    courtLatitude = models.FloatField(blank=True, null=True)
+    courtLongitude = models.FloatField(blank=True, null=True)
+    courtWebsite = models.CharField(max_length=165, blank=True)
 
     class Meta:
         unique_together = ("name", "country")
@@ -200,11 +256,43 @@ class State(models.Model):
 # A locality (suburb).
 ##
 
+class StateStat(models.Model):
+    year = models.IntegerField(default=0, editable=False)
+    #职工平均工资
+    avgEmpSalary = models.FloatField(default=0, editable=False)
+    #最低工资
+    lowEmpSalary = models.FloatField(default=0, editable=False)
+    #source
+    source = models.CharField(max_length=255, blank=True)
+    state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="stateStat")
+    
+
+    class Meta:
+        #unique_together = ("country", "year")
+        ordering = ("state", "year")
+
+    def __str__(self):
+        txt = self.to_str()
+        state = "%s" % self.state
+        if state and txt:
+            txt += ", "
+        txt += state
+        return txt
+
+    def to_str(self):
+        return "%s" % (self.state and self.year)
 
 class Locality(models.Model):
     name = models.CharField(max_length=165, blank=True)
     postal_code = models.CharField(max_length=10, blank=True)
     state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="localities")
+    #市法院
+    localCourt = models.CharField(max_length=165, blank=True)
+    localCourtAddress = models.CharField(max_length=165, blank=True)
+    courtPhoneNumber =models.CharField(max_length=15, blank=True)
+    courtLatitude = models.FloatField(blank=True, null=True)
+    courtLongitude = models.FloatField(blank=True, null=True)
+    courtWebsite = models.CharField(max_length=165, blank=True)
 
     class Meta:
         verbose_name_plural = "Localities"
@@ -224,6 +312,32 @@ class Locality(models.Model):
             txt += ", %s" % cntry
         return txt
 
+
+class LocalityStat(models.Model):
+    year = models.IntegerField(default=0, editable=False)
+    #职工平均工资
+    avgEmpSalary = models.FloatField(default=0, editable=False)
+    #最低工资
+    lowEmpSalary = models.FloatField(default=0, editable=False)
+    #source
+    source = models.CharField(max_length=255, blank=True)
+    locality = models.ForeignKey(Locality, on_delete=models.CASCADE, related_name="localityStat")
+    
+
+    class Meta:
+        #unique_together = ("country", "year")
+        ordering = ("locality", "year")
+
+    def __str__(self):
+        txt = self.to_str()
+        locality = "%s" % self.locality
+        if locality and txt:
+            txt += ", "
+        txt += locality
+        return txt
+
+    def to_str(self):
+        return "%s" % (self.locality and self.year)
 
 ##
 # An address. If for any reason we are unable to find a matching
@@ -245,6 +359,23 @@ class Address(models.Model):
     formatted = models.CharField(max_length=200, blank=True)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+    
+
+    #县法院
+    countyCourt = models.CharField(max_length=165, blank=True)
+    countyCourtAddress = models.CharField(max_length=165, blank=True)
+    courtPhoneNumber =models.CharField(max_length=15, blank=True)
+    courtLatitude = models.FloatField(blank=True, null=True)
+    courtLongitude = models.FloatField(blank=True, null=True)
+    countyCourtWebsite = models.CharField(max_length=165, blank=True)
+
+    #劳动争议仲裁委
+    countyAitration = models.CharField(max_length=165, blank=True)
+    countyAitrationAddress = models.CharField(max_length=165, blank=True)
+    aitrationPhoneNumber =models.CharField(max_length=15, blank=True)
+    aitrationLatitude = models.FloatField(blank=True, null=True)
+    aitrationLongitude = models.FloatField(blank=True, null=True)
+    aitrationWebsite = models.CharField(max_length=165, blank=True)
 
     class Meta:
         verbose_name_plural = "Addresses"
